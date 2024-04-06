@@ -1,0 +1,16 @@
+[package]
+name = "digitsum"
+version = "0.1.0"
+edition = "2021"
+
+
+[[bin]]
+name = "digitsum"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.81"
+halo2_proofs = "0.3.0"
+
+[features]
+default = []
