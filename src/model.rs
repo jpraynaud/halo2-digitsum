@@ -1,5 +1,11 @@
+use std::marker::PhantomData;
+
 use anyhow::anyhow;
-use halo2_proofs::{circuit::Value, pasta::Fp};
+use halo2_proofs::{
+    arithmetic::Field,
+    circuit::Value,
+    pasta::{group::ff::PrimeField, Fp},
+};
 
 use crate::NUMBER_LENGTH;
 
@@ -11,21 +17,23 @@ pub type StdResult<T> = anyhow::Result<T, StdError>;
 
 /// The secret witness for the digit sum circuit
 #[derive(Clone, Debug)]
-pub struct DigitSumSecretWitness {
+pub struct DigitSumSecretWitness<F: Field> {
     number: u64,
+    _marker: PhantomData<F>,
 }
 
-impl DigitSumSecretWitness {
+impl<F: Field> DigitSumSecretWitness<F> {
     /// Creates a new secret witness
     pub fn new(number: u64) -> Self {
-        Self { number }
+        let _marker = PhantomData;
+        Self { number, _marker }
     }
 }
 
-impl TryFrom<DigitSumSecretWitness> for [u64; NUMBER_LENGTH] {
+impl<F: Field> TryFrom<DigitSumSecretWitness<F>> for [u64; NUMBER_LENGTH] {
     type Error = StdError;
 
-    fn try_from(other: DigitSumSecretWitness) -> Result<[u64; NUMBER_LENGTH], Self::Error> {
+    fn try_from(other: DigitSumSecretWitness<F>) -> Result<[u64; NUMBER_LENGTH], Self::Error> {
         let values = other
             .number
             .to_string()
@@ -52,14 +60,14 @@ impl TryFrom<DigitSumSecretWitness> for [u64; NUMBER_LENGTH] {
     }
 }
 
-impl TryFrom<DigitSumSecretWitness> for [Value<Fp>; NUMBER_LENGTH] {
+impl<F: PrimeField> TryFrom<DigitSumSecretWitness<F>> for [Value<F>; NUMBER_LENGTH] {
     type Error = StdError;
 
-    fn try_from(other: DigitSumSecretWitness) -> Result<[Value<Fp>; NUMBER_LENGTH], Self::Error> {
+    fn try_from(other: DigitSumSecretWitness<F>) -> Result<[Value<F>; NUMBER_LENGTH], Self::Error> {
         let values_u64: [u64; NUMBER_LENGTH] = other.try_into()?;
         values_u64
             .into_iter()
-            .map(|v| Value::known(Fp::from(v)))
+            .map(|v| Value::known(F::from(v)))
             .collect::<Vec<_>>()
             .try_into()
             .map_err(|_| {
