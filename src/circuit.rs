@@ -2,13 +2,19 @@
 
 use halo2_proofs::{
     circuit::{Layouter, SimpleFloorPlanner, Value},
-    pasta::group::ff::PrimeField,
-    plonk::{Circuit, ConstraintSystem, Error},
+    pasta::{group::ff::PrimeField, EqAffine, Fp},
+    plonk::{
+        create_proof, keygen_pk, keygen_vk, verify_proof, Circuit, ConstraintSystem, Error,
+        ProvingKey, SingleVerifier, VerifyingKey,
+    },
+    poly::commitment::Params,
+    transcript::{Blake2bRead, Blake2bWrite, Challenge255},
 };
+use rand_core::OsRng;
 
 use crate::{
-    DigitSumChip, DigitSumConfig, DigitSumInstructions, DigitSumSecretWitness, StdResult,
-    NUMBER_LENGTH,
+    Bytes, CircuitKeyGenerator, CircuitProver, CircuitVerifier, DigitSumChip, DigitSumConfig,
+    DigitSumInstructions, DigitSumSecretWitness, StdResult, NUMBER_LENGTH,
 };
 
 /// The size parameter of the circuit: the circuit must fit into 2^k rows.
@@ -67,6 +73,50 @@ impl<F: PrimeField> Circuit<F> for DigitSumCircuit<F> {
         )?;
 
         chip.expose_public(layouter.namespace(|| "expose digit sum"), sum, 0)
+    }
+}
+
+impl CircuitKeyGenerator<EqAffine> for DigitSumCircuit<Fp> {
+    fn generate_setup_params(&self) -> StdResult<Params<EqAffine>> {
+        Ok(Params::<EqAffine>::new(self.k))
+    }
+
+    fn generate_keys(&self) -> StdResult<(ProvingKey<EqAffine>, VerifyingKey<EqAffine>)> {
+        let params = self.generate_setup_params()?;
+        let vk = keygen_vk(&params, self)?;
+        let pk = keygen_pk(&params, vk.clone(), self)?;
+
+        Ok((pk, vk))
+    }
+}
+
+impl CircuitProver<EqAffine, Fp> for DigitSumCircuit<Fp> {
+    fn prove(self, public_inputs: &[Fp]) -> StdResult<Bytes> {
+        let params = self.generate_setup_params()?;
+        let (pk, _) = self.generate_keys()?;
+        let mut transcript = Blake2bWrite::<_, _, Challenge255<_>>::init(vec![]);
+        create_proof(
+            &params,
+            &pk,
+            &[self],
+            &[&[public_inputs]],
+            OsRng,
+            &mut transcript,
+        )?;
+
+        Ok(transcript.finalize())
+    }
+}
+
+impl CircuitVerifier<EqAffine, Fp> for DigitSumCircuit<Fp> {
+    fn verify(self, public_inputs: &[Fp], proof: &Bytes) -> StdResult<()> {
+        let params = self.generate_setup_params()?;
+        let (_, vk) = self.generate_keys()?;
+        let strategy = SingleVerifier::new(&params);
+        let mut transcript = Blake2bRead::<_, _, Challenge255<_>>::init(proof.as_slice());
+        verify_proof(&params, &vk, strategy, &[&[public_inputs]], &mut transcript)?;
+
+        Ok(())
     }
 }
 
