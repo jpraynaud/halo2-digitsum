@@ -8,6 +8,9 @@
 //! having to reveal the number itself. This example is implemented with the [Halo 2](https://github.com/zcash/halo2) proof system.
 //!
 //! The development of the circuit is split into two modules:
+//! - `digitsum` contains the implementation of the digit sum circuit.
+//! - `circuit` contains the final circuit that uses one or more chips to implement the desired proof system.
+//! - `model` contains the public statement and secret witness types for the digit sum circuit.
 //! - `digitsum` contains the implementation of the digit sum circuit
 //! - `circuit` contains the final circuit that uses one or more chips to implement the desired proof system
 //! - `model` contains the public statement and secret witness types for the digit sum circuit
@@ -15,7 +18,9 @@
 mod circuit;
 mod digitsum;
 mod model;
+mod proof_system;
 
 pub use circuit::*;
 pub use digitsum::*;
 pub use model::*;
+pub use proof_system::*;

@@ -15,6 +15,9 @@ pub type StdError = anyhow::Error;
 /// Generic result type
 pub type StdResult<T> = anyhow::Result<T, StdError>;
 
+/// A type alias for bytes
+pub type Bytes = Vec<u8>;
+
 /// The secret witness for the digit sum circuit
 #[derive(Clone, Debug)]
 pub struct DigitSumSecretWitness<F: Field> {
