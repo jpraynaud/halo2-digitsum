@@ -10,7 +10,22 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.81"
-halo2_proofs = "0.3.0"
+clap = { version = "4.5.4", features = ["derive", "env"], optional = true }
+halo2_proofs = { version = "0.3.0" }
+hex = "0.4.3"
+plotters = { version = "0.3.4", optional = true }
+rand_core = "0.6.4"
+slog = { version = "2.7.0", features = [
+    "max_level_trace",
+    "release_max_level_debug",
+] }
+slog-async = "2.8.0"
+slog-bunyan = "2.5.0"
+slog-scope = "4.4.0"
+slog-term = "2.9.0"
+
 
 [features]
-default = []
+default = ["cli"]
+cli = ["graph", "dep:clap"]
+graph = ["halo2_proofs/dev-graph", "dep:plotters"]

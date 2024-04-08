@@ -11,16 +11,17 @@
 //! - `digitsum` contains the implementation of the digit sum circuit.
 //! - `circuit` contains the final circuit that uses one or more chips to implement the desired proof system.
 //! - `model` contains the public statement and secret witness types for the digit sum circuit.
-//! - `digitsum` contains the implementation of the digit sum circuit
-//! - `circuit` contains the final circuit that uses one or more chips to implement the desired proof system
-//! - `model` contains the public statement and secret witness types for the digit sum circuit
+//! - `command` contains the command line interface for the digit sum circuit.
+//! - `proof_system` contains the proof system implementation for the digit sum circuit.
 
 mod circuit;
+mod commands;
 mod digitsum;
 mod model;
 mod proof_system;
 
 pub use circuit::*;
+pub use commands::*;
 pub use digitsum::*;
 pub use model::*;
 pub use proof_system::*;
