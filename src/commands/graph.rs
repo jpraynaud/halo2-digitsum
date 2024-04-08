@@ -40,7 +40,7 @@ impl GraphCommand {
         let root =
             BitMapBackend::new(&graph_export_path, graph_layout_dimensions).into_drawing_area();
         root.fill(&WHITE)?;
-        let root = root.titled(graph_layout_title, ("sans-serif", 60))?;
+        let root = root.titled(graph_layout_title, ("sans-serif", 30))?;
 
         halo2_proofs::dev::CircuitLayout::default()
             .show_labels(self.graph_with_labels)

@@ -1,14 +1,13 @@
 .PHONY: all build test check doc bench
 
 CARGO = cargo
+BINARY = digitsum
 
 all: test build
 
 build:
 	${CARGO} build --release
-
-run:
-	${CARGO} run --release
+	cp target/release/${BINARY} .
 
 test:
 	${CARGO} test --features default
@@ -23,3 +22,4 @@ doc:
 
 bench:
 	${CARGO} bench --features default --verbose
+
