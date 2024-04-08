@@ -30,8 +30,7 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Clippy
-      run: cargo clippy \
-            --all-features --all-targets --no-deps
+      run: cargo clippy --all-features --all-targets --no-deps
 
     - name: Cargo fmt
       run: cargo fmt --check
