@@ -2,7 +2,7 @@
 
 <div align="center">
   <a href='https://github.com/jpraynaud/halo2-digitsum/actions'>
-    <img src="https://img.shields.io/github/actions/workflow/status/jpraynaud/halo2-digitsum/ci.yml?label=Tests&style=for-the-badge&branch=main">
+    <img src="https://img.shields.io/github/actions/workflow/status/jpraynaud/halo2-digitsum/ci.yml?label=Tests&style=for-the-badge&branch=master">
   </a>
   <a href='https://github.com/jpraynaud/halo2-digitsum/issues'>
     <img src="https://img.shields.io/github/issues/jpraynaud/halo2-digitsum?label=Issues&style=for-the-badge">
@@ -13,7 +13,7 @@
   <a href='https://github.com/jpraynaud/halo2-digitsum/stargazers'>
     <img src="https://img.shields.io/github/stars/jpraynaud/halo2-digitsum?label=Stars&style=for-the-badge">
   </a>
-  <a href='https://github.com/jpraynaud/halo2-digitsum/blob/main/LICENSE'>
+  <a href='https://github.com/jpraynaud/halo2-digitsum/blob/master/LICENSE'>
     <img src="https://img.shields.io/github/license/jpraynaud/halo2-digitsum?label=License&style=for-the-badge">
   </a>
 </div>
@@ -182,7 +182,7 @@ $ ./digitsum verify --statement 6 --proof-file-name proof.hex
 >> Proof verified!
 ```
 
-#### Generate the circuit layout
+### Generate the circuit layout
 
 Generate the layout of the circuit with the `graph` sub-command:
 
