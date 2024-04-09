@@ -27,7 +27,7 @@ impl VerifyCommand {
         let proof = read(proof_import_path)?;
         let proof = hex::decode(proof)?;
 
-        let circuit = DigitSumCircuit::<Fp>::new(0)?;
+        let circuit = DigitSumCircuit::<Fp>::default();
         circuit.verify(&[self.statement.into()], &proof)?;
         println!(">> Proof verified!");
 

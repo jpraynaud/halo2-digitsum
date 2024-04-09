@@ -31,8 +31,7 @@ pub struct GraphCommand {
 impl GraphCommand {
     /// Main command execution
     pub fn execute(&self) -> StdResult<()> {
-        let secret_witness_number = 1;
-        let circuit = DigitSumCircuit::<Fp>::new(secret_witness_number)?;
+        let circuit = DigitSumCircuit::<Fp>::default();
 
         let graph_layout_title = "Digit Sum Circuit";
         let graph_layout_dimensions = (self.graph_width, self.graph_height);

@@ -21,13 +21,18 @@ use crate::{
 const DIGIT_SUM_CIRCUIT_SIZE_PARAMETER: u32 = 5;
 
 /// The circuit implementation for digit sum
-#[derive(Default)]
 pub struct DigitSumCircuit<F: PrimeField> {
     /// The number with which to compute the digit sum in decimal representation
     pub number: [Value<F>; NUMBER_LENGTH],
 
     /// The size parameter of the circuit: the circuit must fit into 2^k rows.
     pub k: u32,
+}
+
+impl<F: PrimeField> Default for DigitSumCircuit<F> {
+    fn default() -> Self {
+        Self::new(0).unwrap()
+    }
 }
 
 impl<F: PrimeField> DigitSumCircuit<F> {
