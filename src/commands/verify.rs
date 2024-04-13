@@ -7,9 +7,9 @@ use crate::{CircuitVerifier, DigitSumCircuit, StdResult};
 
 #[derive(Parser, Debug, Clone)]
 pub struct VerifyCommand {
-    /// Public number that Bob knows and which represents the sum of the digits of the witness (a.k.a. the statement).
-    #[clap(long, short = 's')]
-    statement: u64,
+    /// Public number that Bob knows and which represents the sum of the digits of the witness (a.k.a. the public input).
+    #[clap(long, short = 'p')]
+    public_input: u64,
 
     /// Proof import filename.
     #[clap(long, default_value = "proof.hex")]
@@ -28,7 +28,7 @@ impl VerifyCommand {
         let proof = hex::decode(proof)?;
 
         let circuit = DigitSumCircuit::<Fp>::default();
-        circuit.verify(&[self.statement.into()], &proof)?;
+        circuit.verify(&[self.public_input.into()], &proof)?;
         println!(">> Proof verified!");
 
         Ok(())

@@ -10,9 +10,9 @@ pub struct ProveCommand {
     #[clap(long, short = 'w')]
     witness: u64,
 
-    /// Public number that Bob knows and which represents the sum of the digits of the witness (a.k.a. the statement).
-    #[clap(long, short = 's')]
-    statement: u64,
+    /// Public number that Bob knows and which represents the sum of the digits of the witness (a.k.a. the public input).
+    #[clap(long, short = 'p')]
+    public_input: u64,
 
     /// Proof export filename.
     #[clap(long, default_value = "proof.hex")]
@@ -28,7 +28,7 @@ impl ProveCommand {
     pub fn execute(&self) -> StdResult<()> {
         let secret_witness_number = self.witness;
         let circuit = DigitSumCircuit::<Fp>::new(secret_witness_number)?;
-        let proof = circuit.prove(&[self.statement.into()])?;
+        let proof = circuit.prove(&[self.public_input.into()])?;
 
         let proof_hex = hex::encode(proof);
         let proof_export_path = self.proof_export_dir.join(&self.proof_file_name);

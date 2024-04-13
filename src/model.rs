@@ -81,21 +81,21 @@ impl<F: PrimeField> TryFrom<DigitSumSecretWitness<F>> for [Value<F>; NUMBER_LENG
     }
 }
 
-/// The public statement for the digit sum circuit
+/// The public input for the digit sum circuit
 #[derive(Clone, Debug)]
-pub struct DigitSumPublicStatement {
+pub struct DigitSumPublicInput {
     number: u64,
 }
 
-impl DigitSumPublicStatement {
-    /// Creates a new public statement
+impl DigitSumPublicInput {
+    /// Creates a new public input
     pub fn new(number: u64) -> Self {
         Self { number }
     }
 }
 
-impl From<DigitSumPublicStatement> for Fp {
-    fn from(other: DigitSumPublicStatement) -> Fp {
+impl From<DigitSumPublicInput> for Fp {
+    fn from(other: DigitSumPublicInput) -> Fp {
         Fp::from(other.number)
     }
 }

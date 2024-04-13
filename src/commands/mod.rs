@@ -1,6 +1,6 @@
 //! The command module contains the command line interface for the digit sum circuit:
-//! - `prove` generates a proof for a given number (witness) and digit sum (statement)
-//! - `verify` verifies a proof for a given number (witness) and digit sum (statement)
+//! - `prove` generates a proof for a given number (witness) and digit sum (public input)
+//! - `verify` verifies a proof for a given number (witness) and digit sum (public input)
 //! - `graph` generates a graph representation of the circuit
 
 mod graph;

@@ -10,7 +10,7 @@
 //! The development of the circuit is split into two modules:
 //! - `digitsum` contains the implementation of the digit sum circuit.
 //! - `circuit` contains the final circuit that uses one or more chips to implement the desired proof system.
-//! - `model` contains the public statement and secret witness types for the digit sum circuit.
+//! - `model` contains the public input and secret witness types for the digit sum circuit.
 //! - `command` contains the command line interface for the digit sum circuit.
 //! - `proof_system` contains the proof system implementation for the digit sum circuit.
 

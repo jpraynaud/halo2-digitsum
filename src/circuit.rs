@@ -129,23 +129,20 @@ impl CircuitVerifier<EqAffine, Fp> for DigitSumCircuit<Fp> {
 mod tests {
     use halo2_proofs::{dev::MockProver, pasta::Fp};
 
-    use crate::DigitSumPublicStatement;
+    use crate::DigitSumPublicInput;
 
     use super::*;
 
     #[test]
-    fn test_digit_sum_circuit_proof_succeeds_if_valid_statement() {
+    fn test_digit_sum_circuit_proof_succeeds_if_valid_public_input() {
         let secret_witness_number = 12340000;
-        let public_statement_digitsum = 10;
+        let public_input_digitsum = 10;
 
         let circuit = DigitSumCircuit::<Fp>::new(secret_witness_number).unwrap();
         let prover = MockProver::run(
             circuit.k,
             &circuit,
-            vec![vec![DigitSumPublicStatement::new(
-                public_statement_digitsum,
-            )
-            .into()]],
+            vec![vec![DigitSumPublicInput::new(public_input_digitsum).into()]],
         )
         .unwrap();
 
@@ -153,18 +150,15 @@ mod tests {
     }
 
     #[test]
-    fn test_digit_sum_circuit_proof_fails_if_invalid_statement() {
+    fn test_digit_sum_circuit_proof_fails_if_invalid_public_input() {
         let secret_witness_number = 10000000;
-        let public_statement_digitsum = 2;
+        let public_input_digitsum = 2;
 
         let circuit = DigitSumCircuit::<Fp>::new(secret_witness_number).unwrap();
         let prover = MockProver::run(
             circuit.k,
             &circuit,
-            vec![vec![DigitSumPublicStatement::new(
-                public_statement_digitsum,
-            )
-            .into()]],
+            vec![vec![DigitSumPublicInput::new(public_input_digitsum).into()]],
         )
         .unwrap();
 

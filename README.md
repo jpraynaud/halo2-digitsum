@@ -105,13 +105,13 @@ Here are the available commands:
 $ ./digitsum prove --help
 Run the prover for the digit sum circuit
 
-Usage: digitsum prove [OPTIONS] --witness <WITNESS> --statement <STATEMENT>
+Usage: digitsum prove [OPTIONS] --witness <WITNESS> --public-input <PUBLIC_INPUT>
 
 Options:
   -w, --witness <WITNESS>
           Secret number that Alice knows (a.k.a. the witness)
-  -s, --statement <STATEMENT>
-          Public number that Bob knows and which represents the sum of the digits of the witness (a.k.a. the statement)
+  -p, --public-input <PUBLIC_INPUT>
+          Public number that Bob knows and which represents the sum of the digits of the witness (a.k.a. the public input)
       --proof-file-name <PROOF_FILE_NAME>
           Proof export filename [default: proof.hex]
       --proof-export-dir <PROOF_EXPORT_DIR>
@@ -126,11 +126,11 @@ Options:
 $ ./digitsum verify --help
 Run the verifier for the digit sum circuit
 
-Usage: digitsum verify [OPTIONS] --statement <STATEMENT>
+Usage: digitsum verify [OPTIONS] --public-input <PUBLIC_INPUT>
 
 Options:
-  -s, --statement <STATEMENT>
-          Public number that Bob knows and which represents the sum of the digits of the witness (a.k.a. the statement)
+  -p, --public-input <PUBLIC_INPUT>
+          Public number that Bob knows and which represents the sum of the digits of the witness (a.k.a. the public input)
       --proof-file-name <PROOF_FILE_NAME>
           Proof import filename [default: proof.hex]
       --proof-import-dir <PROOF_IMPORT_DIR>
@@ -169,7 +169,7 @@ Options:
 Create a proof with the `prove` sub-command:
 
 ```bash
-$ ./digitsum prove --witness 123 --statement 6 --proof-file-name proof.hex
+$ ./digitsum prove --witness 123 --public-input 6 --proof-file-name proof.hex
 >> Proof generated to "./proof.hex"
 ```
 
@@ -178,7 +178,7 @@ $ ./digitsum prove --witness 123 --statement 6 --proof-file-name proof.hex
 Verify a proof with the `verify` sub-command:
 
 ```bash
-$ ./digitsum verify --statement 6 --proof-file-name proof.hex
+$ ./digitsum verify --public-input 6 --proof-file-name proof.hex
 >> Proof verified!
 ```
 
