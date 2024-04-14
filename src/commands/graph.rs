@@ -19,6 +19,14 @@ pub struct GraphCommand {
     #[clap(long, default_value = "true")]
     graph_with_labels: bool,
 
+    /// Circuit layout mark equality cells
+    #[clap(long, default_value = "true")]
+    graph_mark_equality_cells: bool,
+
+    /// Circuit layout show equality constraints.
+    #[clap(long, default_value = "true")]
+    graph_show_equality_constraints: bool,
+
     /// Circuit layout width.
     #[clap(long, default_value = "1024")]
     graph_width: u32,
@@ -43,6 +51,8 @@ impl GraphCommand {
 
         halo2_proofs::dev::CircuitLayout::default()
             .show_labels(self.graph_with_labels)
+            .mark_equality_cells(self.graph_show_equality_constraints)
+            .show_equality_constraints(self.graph_show_equality_constraints)
             .render(circuit.k, &circuit, &root)?;
         println!(">> Circuit layout generated to {:?}", graph_export_path);
 

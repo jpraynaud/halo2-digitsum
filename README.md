@@ -154,6 +154,10 @@ Options:
           Circuit layout export directory [default: ./]
       --graph-with-labels
           Circuit layout with labels
+      --graph-mark-equality-cells
+          Circuit layout mark equality cells
+      --graph-show-equality-constraints
+          Circuit layout show equality constraints
       --graph-width <GRAPH_WIDTH>
           Circuit layout width [default: 1024]
       --graph-height <GRAPH_HEIGHT>
