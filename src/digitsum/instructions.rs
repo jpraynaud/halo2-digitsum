@@ -16,13 +16,6 @@ pub trait DigitSumInstructions<F: Field>: Chip<F> {
         &self,
         layouter: impl Layouter<F>,
         values: [Value<F>; NUMBER_LENGTH],
-    ) -> Result<Vec<Self::Num>, Error>;
-
-    /// Sums the digits of a number
-    fn compute_digit_sum(
-        &self,
-        layouter: impl Layouter<F>,
-        values: [Self::Num; NUMBER_LENGTH],
     ) -> Result<Self::Num, Error>;
 
     /// Exposes a number as a public input to the circuit.

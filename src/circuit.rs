@@ -55,9 +55,7 @@ impl<F: PrimeField> Circuit<F> for DigitSumCircuit<F> {
     }
 
     fn configure(meta: &mut ConstraintSystem<F>) -> Self::Config {
-        let advice = (0..NUMBER_LENGTH)
-            .map(|_| meta.advice_column())
-            .collect::<Vec<_>>();
+        let advice = (0..3).map(|_| meta.advice_column()).collect::<Vec<_>>();
         let instance = meta.instance_column();
         DigitSumChip::configure(meta, advice.try_into().unwrap(), instance)
     }
@@ -69,13 +67,7 @@ impl<F: PrimeField> Circuit<F> for DigitSumCircuit<F> {
     ) -> Result<(), Error> {
         let chip = DigitSumChip::construct(config);
 
-        let private_number =
-            chip.load_private(layouter.namespace(|| "private number"), self.number)?;
-
-        let sum = chip.compute_digit_sum(
-            layouter.namespace(|| "digit sum"),
-            private_number.try_into().unwrap(),
-        )?;
+        let sum = chip.load_private(layouter.namespace(|| "private number"), self.number)?;
 
         chip.expose_public(layouter.namespace(|| "expose digit sum"), sum, 0)
     }

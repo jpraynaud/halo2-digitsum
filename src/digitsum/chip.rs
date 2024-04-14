@@ -2,8 +2,8 @@ use std::marker::PhantomData;
 
 use halo2_proofs::{
     arithmetic::Field,
-    circuit::{AssignedCell, Chip, Layouter, Region, Value},
-    plonk::{Advice, Column, ConstraintSystem, Error, Expression, Instance},
+    circuit::{AssignedCell, Chip, Layouter, Value},
+    plonk::{Advice, Column, ConstraintSystem, Error, Instance},
     poly::Rotation,
 };
 
@@ -27,7 +27,7 @@ impl<F: Field> DigitSumChip<F> {
     /// Configures the digit sum chip
     pub fn configure(
         meta: &mut ConstraintSystem<F>,
-        advice: [Column<Advice>; NUMBER_LENGTH],
+        advice: [Column<Advice>; 3],
         instance: Column<Instance>,
     ) -> <Self as Chip<F>>::Config {
         meta.enable_equality(instance);
@@ -39,22 +39,23 @@ impl<F: Field> DigitSumChip<F> {
             // This gate implements the sum of the digits of the provided number in decimal representation
             // Here is the arrangement of the cells of the gate
             //
-            // | a0  | a1  | a2  | a3  | a4  | a5  | a6  | a7  | s_sum |
-            // |-----|-----|-----|-----|-----|-----|-----|-----|-------|
-            // | in0 | in1 | in2 | in3 | in4 | in5 | in6 | in7 | s_sum |
-            // | out |     |     |     |     |     |     |     |       |
+            // | a0  | a1   | a2   | s_sum |
+            // |-----|------|------|-------|
+            // | in0 | 0    | sum0 | s_sum |
+            // | in1 | sum0 | sum1 | s_sum |
+            // | in2 | sum1 | sum2 | s_sum |
+            // | in3 | sum2 | sum3 | s_sum |
+            // | in4 | sum3 | sum4 | s_sum |
+            // | in5 | sum4 | sum5 | s_sum |
+            // | in6 | sum5 | sum6 | s_sum |
+            // | in7 | sum6 | sum7 | s_sum |
             //
-            let inputs = advice
-                .iter()
-                .map(|adv| meta.query_advice(*adv, Rotation::cur()))
-                .collect::<Vec<_>>();
-            let sum_inputs = inputs
-                .into_iter()
-                .fold(Expression::Constant(F::ZERO), |acc, input| acc + input);
-            let output = meta.query_advice(advice[0], Rotation::next());
+            let input_lhs = meta.query_advice(advice[0], Rotation::cur());
+            let input_rhs = meta.query_advice(advice[1], Rotation::cur());
+            let output = meta.query_advice(advice[2], Rotation::cur());
             let s_sum = meta.query_selector(s_sum);
 
-            vec![s_sum * (sum_inputs - output)]
+            vec![s_sum * (input_lhs + input_rhs - output)]
         });
 
         DigitSumConfig {
@@ -78,7 +79,7 @@ impl<F: Field> Chip<F> for DigitSumChip<F> {
     }
 }
 
-/// A number in the represented in the chip
+/// A number represented in the chip
 #[derive(Clone, Debug)]
 pub struct DigitSumNumber<F: Field>(AssignedCell<F, F>);
 
@@ -89,60 +90,55 @@ impl<F: Field> DigitSumInstructions<F> for DigitSumChip<F> {
         &self,
         mut layouter: impl Layouter<F>,
         values: [Value<F>; NUMBER_LENGTH],
-    ) -> Result<Vec<Self::Num>, Error> {
-        let config = self.config();
-        // TODO: verify that the number is in decimal representation
-        layouter.assign_region(
-            || "assign private value",
-            |mut region| {
-                values
-                    .iter()
-                    .enumerate()
-                    .map(|(i, value)| {
-                        let cell = region.assign_advice(
-                            || format!("load private value {}", i),
-                            config.advice[i],
-                            i,
-                            || *value,
-                        )?;
-                        Ok(DigitSumNumber(cell))
-                    })
-                    .collect()
-            },
-        )
-    }
-
-    fn compute_digit_sum(
-        &self,
-        mut layouter: impl Layouter<F>,
-        values: [Self::Num; NUMBER_LENGTH],
     ) -> Result<Self::Num, Error> {
         let config = self.config();
 
-        layouter.assign_region(
-            || "sum digits",
-            |mut region: Region<'_, F>| {
-                config.s_sum.enable(&mut region, 0)?;
-
-                for (i, value) in values.iter().enumerate() {
-                    value.0.copy_advice(
-                        || format!("value[{i}]"),
-                        &mut region,
-                        config.advice[i],
+        layouter
+            .assign_region(
+                || "digits sum",
+                |mut region| {
+                    let mut previous_value = region.assign_advice(
+                        || "zero",
+                        config.advice[1],
                         0,
+                        || Value::known(F::ZERO),
                     )?;
-                }
+                    for (i, value) in values.into_iter().enumerate() {
+                        config.s_sum.enable(&mut region, i)?;
 
-                let sum_value = values
-                    .iter()
-                    .map(|v| v.0.value().copied())
-                    .fold(Value::known(F::ZERO), |acc, e| acc + e);
+                        // First advice column of ith row is the ith witness digit
+                        region
+                            .assign_advice(
+                                || format!("witness {}", i),
+                                config.advice[0],
+                                i,
+                                || value,
+                            )
+                            .map(DigitSumNumber)?;
 
-                region
-                    .assign_advice(|| "sum digits", config.advice[0], 1, || sum_value)
-                    .map(DigitSumNumber)
-            },
-        )
+                        // Second advice column of ith row is the sum of the first i-1 digits
+                        if i > 0 {
+                            previous_value.copy_advice(
+                                || format!("digit sum[{}]", i - 1),
+                                &mut region,
+                                config.advice[1],
+                                i,
+                            )?;
+                        }
+
+                        // Third advice column of ith row is the sum of the first i digits
+                        previous_value = region.assign_advice(
+                            || format!("digit sum [{i}]"),
+                            config.advice[2],
+                            i,
+                            || value + previous_value.value(),
+                        )?;
+                    }
+
+                    Ok(previous_value)
+                },
+            )
+            .map(DigitSumNumber)
     }
 
     fn expose_public(
