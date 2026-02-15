@@ -9,6 +9,9 @@ use halo2_proofs::{
 
 use crate::{DigitSumConfig, DigitSumInstructions, NUMBER_LENGTH};
 
+/// The upper bound (exclusive) for a valid decimal digit
+const DIGIT_RANGE_UPPER_BOUND: usize = 10;
+
 /// The chip that implements the digit sum computation instructions
 pub struct DigitSumChip<F: Field> {
     config: DigitSumConfig,
@@ -35,20 +38,32 @@ impl<F: Field> DigitSumChip<F> {
             meta.enable_equality(*column);
         }
         let s_sum = meta.selector();
+        let s_lookup = meta.complex_selector();
+        let digit_table = meta.lookup_table_column();
+
+        // When s_lookup is enabled, the lookup constrains digit values to {0..9}.
+        // When s_lookup is disabled, the expression evaluates to 0 which is in the
+        // table, so unused rows pass the lookup without additional constraints.
+        meta.lookup(|meta| {
+            let s_lookup = meta.query_selector(s_lookup);
+            let digit = meta.query_advice(advice[0], Rotation::cur());
+            vec![(s_lookup * digit, digit_table)]
+        });
+
         meta.create_gate("digit_sum", |meta| {
             // This gate implements the sum of the digits of the provided number in decimal representation
             // Here is the arrangement of the cells of the gate
             //
-            // | a0  | a1   | a2   | s_sum |
-            // |-----|------|------|-------|
-            // | in0 | 0    | sum0 | s_sum |
-            // | in1 | sum0 | sum1 | s_sum |
-            // | in2 | sum1 | sum2 | s_sum |
-            // | in3 | sum2 | sum3 | s_sum |
-            // | in4 | sum3 | sum4 | s_sum |
-            // | in5 | sum4 | sum5 | s_sum |
-            // | in6 | sum5 | sum6 | s_sum |
-            // | in7 | sum6 | sum7 | s_sum |
+            // | a0  | a1   | a2   | s_sum | s_lookup |
+            // |-----|------|------|-------|----------|
+            // | in0 | 0    | sum0 | s_sum | s_lookup |
+            // | in1 | sum0 | sum1 | s_sum | s_lookup |
+            // | in2 | sum1 | sum2 | s_sum | s_lookup |
+            // | in3 | sum2 | sum3 | s_sum | s_lookup |
+            // | in4 | sum3 | sum4 | s_sum | s_lookup |
+            // | in5 | sum4 | sum5 | s_sum | s_lookup |
+            // | in6 | sum5 | sum6 | s_sum | s_lookup |
+            // | in7 | sum6 | sum7 | s_sum | s_lookup |
             //
             let input_lhs = meta.query_advice(advice[0], Rotation::cur());
             let input_rhs = meta.query_advice(advice[1], Rotation::cur());
@@ -62,6 +77,8 @@ impl<F: Field> DigitSumChip<F> {
             advice,
             instance,
             s_sum,
+            s_lookup,
+            digit_table,
         }
     }
 }
@@ -86,6 +103,27 @@ pub struct DigitSumNumber<F: Field>(AssignedCell<F, F>);
 impl<F: Field> DigitSumInstructions<F> for DigitSumChip<F> {
     type Num = DigitSumNumber<F>;
 
+    fn load_table(&self, mut layouter: impl Layouter<F>) -> Result<(), Error> {
+        let config = self.config();
+
+        layouter.assign_table(
+            || "digit range table",
+            |mut table| {
+                let mut value = F::ZERO;
+                for digit in 0..DIGIT_RANGE_UPPER_BOUND {
+                    table.assign_cell(
+                        || format!("digit {digit}"),
+                        config.digit_table,
+                        digit,
+                        || Value::known(value),
+                    )?;
+                    value += F::ONE;
+                }
+                Ok(())
+            },
+        )
+    }
+
     fn load_private(
         &self,
         mut layouter: impl Layouter<F>,
@@ -105,6 +143,7 @@ impl<F: Field> DigitSumInstructions<F> for DigitSumChip<F> {
                     )?;
                     for (i, value) in values.into_iter().enumerate() {
                         config.s_sum.enable(&mut region, i)?;
+                        config.s_lookup.enable(&mut region, i)?;
 
                         // First advice column of ith row is the ith witness digit
                         region
