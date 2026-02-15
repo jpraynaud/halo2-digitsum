@@ -156,4 +156,65 @@ mod tests {
 
         prover.verify().expect_err("the proof should be invalid");
     }
+
+    #[test]
+    fn out_of_range_digit_is_accepted_as_valid() {
+        let digit_sum_claimed = 10;
+        let circuit = DigitSumCircuit::<Fp> {
+            number: [
+                Value::known(Fp::from(10)),
+                Value::known(Fp::from(0)),
+                Value::known(Fp::from(0)),
+                Value::known(Fp::from(0)),
+                Value::known(Fp::from(0)),
+                Value::known(Fp::from(0)),
+                Value::known(Fp::from(0)),
+                Value::known(Fp::from(0)),
+            ],
+            k: DIGIT_SUM_CIRCUIT_SIZE_PARAMETER,
+        };
+        let prover = MockProver::run(
+            circuit.k,
+            &circuit,
+            vec![vec![DigitSumPublicInput::new(digit_sum_claimed).into()]],
+        )
+        .unwrap();
+
+        prover
+            .verify()
+            .expect("the circuit accepts out-of-range digits, proving it is underconstrained");
+    }
+
+    /// A malicious prover can exploit modular arithmetic to forge a digit sum.
+    /// Here the "digits" are [-1, 0, 0, 0, 0, 0, 0, 1], which sum to 0 in the
+    /// finite field because (p - 1) + 1 = 0 mod p. The range check lookup
+    /// rejects this because p - 1 is not in the table {0, 1, ..., 9}.
+    #[test]
+    fn field_wrapping_arithmetic_is_accepted_as_valid() {
+        let digit_sum_claimed = 0;
+        let circuit = DigitSumCircuit::<Fp> {
+            number: [
+                Value::known(-Fp::from(1)),
+                Value::known(Fp::from(0)),
+                Value::known(Fp::from(0)),
+                Value::known(Fp::from(0)),
+                Value::known(Fp::from(0)),
+                Value::known(Fp::from(0)),
+                Value::known(Fp::from(0)),
+                Value::known(Fp::from(1)),
+            ],
+            k: DIGIT_SUM_CIRCUIT_SIZE_PARAMETER,
+        };
+        let prover = MockProver::run(
+            circuit.k,
+            &circuit,
+            vec![vec![DigitSumPublicInput::new(digit_sum_claimed).into()]],
+        )
+        .unwrap();
+
+        prover.verify().expect(
+            "the circuit accepts field-wrapping arithmetic, proving it is underconstrained",
+        );
+    }
+
 }
