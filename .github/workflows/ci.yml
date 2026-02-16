@@ -15,6 +15,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Install system dependencies
+      run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
+
     - name: Build
       run: cargo build --release --verbose --features default
 
@@ -29,6 +32,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Install system dependencies
+      run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
+
     - name: Clippy
       run: cargo clippy --all-features --all-targets --no-deps
 
@@ -40,6 +46,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Install system dependencies
+      run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
+
     - name: Run tests
       run: cargo test --verbose --features default
 
@@ -47,6 +56,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+
+    - name: Install system dependencies
+      run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
 
     - name: Run tests
       run: cargo doc --no-deps --features default
