@@ -11,6 +11,9 @@ pub trait DigitSumInstructions<F: Field>: Chip<F> {
     /// The number type associated to the digit sum instruction
     type Num;
 
+    /// Loads the digit range lookup table into the circuit.
+    fn load_table(&self, layouter: impl Layouter<F>) -> Result<(), Error>;
+
     /// Loads a private input to the circuit in a decimal format.
     fn load_private(
         &self,
